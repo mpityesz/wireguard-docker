@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  wireguard-vpn:
+    image: linuxserver/wireguard
+    container_name: wireguard-vpn
+    cap_add:
+      ### NET_ADMIN: Required for managing network interfaces
+      - NET_ADMIN
+      ### SYS_MODULE: Allows loading kernel modules (needed for WireGuard within container if host module isn't used directly)
+      - SYS_MODULE
+    environment:
+      ### User ID to run as, change if needed (check with 'id -u' command)
+      - PUID=1000
+      ### Group ID to run as, change if needed (check with 'id -g' command)
+      - PGID=1000
+      ### Set your Timezone
+      - TZ=Europe/Budapest
+      ### Server's public IP or domain name. 'auto' usually works.
+      - SERVERURL=auto
+      ### Default WireGuard port, uncomment and change only if necessary
+      ### - SERVERPORT=51820
+      ### Number of client config files to generate initially (e.g., 1 for the first Windows test)
+      - PEERS=5
+      ### DNS server for clients, 'auto' uses container's DNS. Can be set to e.g., 1.1.1.1
+      ### - PEERDNS=auto
+      ### Internal network subnet for WireGuard clients
+      - INTERNAL_SUBNET=10.13.13.0/24
+      ### Default: routes all client traffic through VPN (full tunnel)
+      ### - ALLOWEDIPS=0.0.0.0/0
+    volumes:
+      ### Host path where WireGuard config and peer files will be stored
+      - /mnt/storage/docker-projects/wireguard-vpn/volumes/config:/config
+      ### Allows access to host kernel modules - READ ONLY
+      - /lib/modules:/lib/modules:ro
+    networks:
+      wireguard_vpn_net:
+        ipv4_address: 172.35.0.2
+    ports:
+      ### Map UDP port 51820 from host to container
+      - "51820:51820/udp"
+    sysctls:
+      ### Required sysctl parameter for WireGuard routing
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: unless-stopped
+
+networks:
+  wireguard_vpn_net:
+    external: true
+
+
