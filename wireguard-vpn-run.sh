@@ -44,9 +44,12 @@ sudo "$DOCKER_NET_SCRIPT" --action=enable --network="$DOCKER_NETWORK_NAME"
 echo "Configuring IPTables..."
 # Using default WG subnet from script ('10.13.13.0/24')
 # Using auto-detected interface from script
-sudo "$IPTABLES_SCRIPT" --action=enable --wg-subnet="$WG_SUBNET"
+WG_FLAGS=()
+if [[ -n "$WG_SUBNET" ]]; then
+  WG_FLAGS+=(--wg-subnet="$WG_SUBNET")
+fi
+sudo "$IPTABLES_SCRIPT" --action=enable "${WG_FLAGS[@]}"
 # Add --interface here if auto-detect is not desired/reliable
-
 
 
 ### --- 4. Start Docker Container --- ###
